@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام مواقف الحسينية المهدية - صفوى</title>
+    <meta name="description" content="موقع لمتابعة حالة وتوفر مواقف وبراحات الحسينية بصفوى خلال فترة محرم الحرام">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --accent-color: #c0392b;
+            --text-color: #ffffff;
+            --success: #27ae60;
+            --warning: #f1c40f;
+            --blue: #2980b9;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); color: var(--text-color); text-align: center; padding: 20px; margin: 0; }
+        .container { max-width: 550px; margin: 0 auto; }
+        .card { background: var(--card-bg); padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); margin-bottom: 20px; border: 1px solid #333; text-align: right; }
+        .center { text-align: center; }
+        h2 { color: #f1f1f1; margin-bottom: 5px; }
+        .subtitle { color: #888; margin-top: 0; font-size: 0.9rem; }
+        
+        /* تصميم أسطر المواقف */
+        .baraha-card { border-bottom: 1px solid #333; padding: 15px 0; }
+        .baraha-card:last-child { border-bottom: none; }
+        .baraha-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .baraha-info h3 { margin: 0; font-size: 1.05rem; color: #f1f1f1; padding-bottom: 5px; }
+        .badge { padding: 6px 12px; border-radius: 20px; font-weight: bold; font-size: 0.85rem; min-width: 110px; text-align: center; }
+        .badge.full { background-color: var(--accent-color); color: white; }
+        .badge.available { background-color: var(--success); color: white; }
+        .badge.crowded { background-color: var(--warning); color: black; }
+
+        /* أزرار اللوكيشن للزوار */
+        .btn-location { background-color: #2c3e50; color: #ecf0f1; border: 1px solid #444; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; width: auto; display: inline-flex; align-items: center; gap: 5px; text-decoration: none; justify-content: center; transition: 0.3s; }
+        .btn-location:hover { background-color: #34495e; }
+
+        /* المدخلات والأزرار العامة */
+        input, select { padding: 12px; width: 100%; border-radius: 8px; border: 1px solid #444; margin-bottom: 15px; background: #2a2a2a; color: white; box-sizing: border-box; font-size: 1rem; }
+        button { padding: 12px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; font-size: 1rem; }
+        .btn-primary { background-color: var(--accent-color); color: white; }
+        .btn-secondary { background-color: var(--blue); color: white; }
+        .btn-reset { background-color: #7f8c8d; color: white; margin-top: 10px; border: 1px dashed #fff; }
+        .btn-reset:hover { background-color: #95a5a6; }
+        .hidden { display: none; }
+        .admin-control { background: #252525; padding: 15px; border-radius: 8px; margin-top: 15px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="center">
+            <h2>مواقف الحسينية المهدية 🏴</h2>
+            <p class="subtitle">بث مباشر لحالة توفر المواقف بصفوى</p>
+        </div>
+
+        <div id="userView" class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <strong style="color: var(--success);">● بث مباشر (يتحدث تلقائياً)</strong>
+                <span id="lastUpdate" style="font-size: 0.8rem; color: #888;">جاري التحديث...</span>
+            </div>
+            
+            <div class="baraha-card">
+                <div class="baraha-row">
+                    <div class="baraha-info">
+                        <h3>١. المواقف الشرقية الرئيسية</h3>
+                    </div>
+                    <div id="status-b1" class="badge available">-- موقف متبقي</div>
+                </div>
+                <a href="https://maps.app.goo.gl/7vhGQYeBDonz4mQE7?g_st=aw" target="_blank" class="btn-location">📍 موقع الموقف</a>
+            </div>
+
+            <div class="baraha-card">
+                <div class="baraha-row">
+                    <div class="baraha-info">
+                        <h3>٢. المواقف الشرقية الجنوبية</h3>
+                    </div>
+                    <div id="status-b2" class="badge available">-- موقف متبقي</div>
+                </div>
+                <a href="https://maps.app.goo.gl/hk357uYdZES1QAqx9?g_st=ac" target="_blank" class="btn-location">📍 موقع الموقف</a>
+            </div>
+
+            <div class="baraha-card">
+                <div class="baraha-row">
+                    <div class="baraha-info">
+                        <h3>٣. المواقف جنوب الحسينية المهدية</h3>
+                    </div>
+                    <div id="status-b3" class="badge available">-- موقف متبقي</div>
+                </div>
+                <a href="https://maps.app.goo.gl/CaY9MpcQQdcHm5DD7?g_st=aw" target="_blank" class="btn-location">📍 موقع الموقف</a>
+            </div>
+
+            <div class="baraha-card">
+                <div class="baraha-row">
+                    <div class="baraha-info">
+                        <h3>٤. مواقف ملعب القوع</h3>
+                    </div>
+                    <div id="status-b4" class="badge available">-- موقف متبقي</div>
+                </div>
+                <a href="https://www.google.com/maps/place/26%C2%B039'17.9%22N+49%C2%B057'47.1%22E/@26.654973,49.963081,596m/data=!3m2!1e3!4b1" target="_blank" class="btn-location">📍 موقع الموقف</a>
+            </div>
+
+            <div class="baraha-card">
+                <div class="baraha-row">
+                    <div class="baraha-info">
+                        <h3>٥. المواقف الشرقية شرق الشارع أ</h3>
+                    </div>
+                    <div id="status-b5" class="badge available">-- موقف متبقي</div>
+                </div>
+                <a href="https://maps.app.goo.gl/PihURS6s5Psg1ueZ7?g_st=aw" target="_blank" class="btn-location">📍 موقع الموقف</a>
+            </div>
+
+          
+
+            <div class="center" style="margin-top: 25px;">
+                <button onclick="showLogin()" style="background: none; color: #555; font-size: 0.85rem; width: auto;">دخول المنظمين</button>
+            </div>
+        </div>
+
+        <div id="loginView" class="card hidden">
+            <h3 class="center">تسجيل دخول المنظم</h3>
+            <input type="password" id="secretPin" placeholder="أدخل الرقم السري">
+            <button class="btn-secondary" onclick="checkPin()">دخول</button>
+            <button onclick="hideLogin()" style="background:none; color: gray; margin-top: 10px;">إلغاء</button>
+        </div>
+
+        <div id="adminPanel" class="card hidden">
+            <h3 style="color: var(--success);" class="center">لوحة التحكم بالمنظومة</h3>
+            <p class="center" style="font-size: 0.85rem; color: #aaa;">مرحباً المطور: Azuz</p>
+            
+            <div class="admin-control">
+                <label>اختر الموقف المراد تحديثه:</label>
+                <select id="selectedBaraha">
+                    <option value="b1">١. المواقف الشرقية الرئيسية</option>
+                    <option value="b2">٢. المواقف الشرقية الجنوبية</option>
+                    <option value="b3">٣. المواقف جنوب الحسينية المهدية</option>
+                    <option value="b4">٤. مواقف ملعب القوع</option>
+                    <option value="b5">٥. المواقف الشرقية شرق الشارع أ</option>
+                </select>
+
+                <label>عدد المواقف المتبقية حالياً:</label>
+                <input type="number" id="newCount" placeholder="مثال: 15">
+                
+                <button class="btn-primary" onclick="updateDatabase()">تحديث الحالة الآن</button>
+                
+                <button class="btn-reset" onclick="resetAllDatabase()">🔄 إرجاع كل المواقف إلى (متوفر ✅)</button>
+            </div>
+
+            <button onclick="logout()" style="background: #333; color: white; margin-top: 20px;">تسجيل خروج</button>
+        </div>
+    </div>
+
+    <script>
+        // --- إعدادات Firebase الحقيقية الخاصة بمشروعك الحسابي ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyCmKBjitIeAmmHtpxmwBzFx2UK-CB4c8J4",
+            authDomain: "parking-477f2.firebaseapp.com",
+            databaseURL: "https://parking-477f2-default-rtdb.firebaseio.com",
+            projectId: "parking-477f2",
+            storageBucket: "parking-477f2.firebasestorage.app",
+            messagingSenderId: "243175977272",
+            appId: "1:243175977272:web:2e958a5a70747e216651cd"
+        };
+        
+        // تهيئة اتصال السيرفر بقاعدة البيانات
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // السعات الافتراضية لحساب الألوان والنسب خلف الكواليس
+        const capacities = { b1: 60, b2: 40, b3: 50, b4: 80, b5: 35, b6: 35 };
+        const CORRECT_PIN = "258031"; // الرقم السري الخاص بك
+
+        // --- جلب البيانات تلقائياً وتحديث واجهة الزوار بصفوى ---
+        db.ref('barahat').on('value', (snapshot) => {
+            const data = snapshot.val() || { b1: 60, b2: 40, b3: 50, b4: 80, b5: 35, b6: 35 };
+            
+            updateDisplay('b1', data.b1);
+            updateDisplay('b2', data.b2);
+            updateDisplay('b3', data.b3);
+            updateDisplay('b4', data.b4);
+            updateDisplay('b5', data.b5);
+            updateDisplay('b6', data.b6);
+
+            const now = new Date();
+            document.getElementById('lastUpdate').innerText = `تحديث: ${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+        });
+
+        function updateDisplay(id, count) {
+            const element = document.getElementById(`status-${id}`);
+            const max = capacities[id];
+            
+            if (count <= 0) {
+                element.innerText = "ممتلئ بالكامل ❌";
+                element.className = "badge full";
+            } else if (count <= (max * 0.2)) {
+                element.innerText = `${count} متبقي (مزدحم ⚠️)`;
+                element.className = "badge crowded";
+            } else {
+                element.innerText = `${count} متبقي (متوفر ✅)`;
+                element.className = "badge available";
+            }
+        }
+
+        // --- التحقق من الرقم السري للـ الأدمن ---
+        function checkPin() {
+            const enteredPin = document.getElementById('secretPin').value;
+            if (enteredPin === CORRECT_PIN) {
+                document.getElementById('loginView').classList.add('hidden');
+                document.getElementById('adminPanel').classList.remove('hidden');
+                document.getElementById('userView').classList.add('hidden');
+                document.getElementById('secretPin').value = ""; 
+            } else {
+                alert("الرقم السري غير صحيح!");
+            }
+        }
+
+        // تحديث موقف فردي في قاعدة البيانات السحابية
+        function updateDatabase() {
+            const barahaId = document.getElementById('selectedBaraha').value;
+            const countValue = parseInt(document.getElementById('newCount').value);
+
+            if (isNaN(countValue) || countValue < 0) {
+                return alert("الرجاء إدخال رقم صحيح وموجب");
+            }
+
+            db.ref(`barahat/${barahaId}`).set(countValue)
+                .then(() => {
+                    alert("تم تحديث الحالة بنجاح!");
+                    document.getElementById('newCount').value = "";
+                })
+                .catch(error => {
+                    alert("حدث خطأ في الاتصال بقاعدة البيانات.");
+                });
+        }
+
+        // إرجاع كافة المواقف الستة إلى متوفر بالكامل دفعة واحدة
+        function resetAllDatabase() {
+            if (confirm("هل أنت متأكد من رغبتك في إعادة تعيين كافة المواقف الستة إلى 'متوفر بالكامل'؟")) {
+                const defaultResetValues = { b1: 60, b2: 40, b3: 50, b4: 80, b5: 35, b6: 35 };
+                
+                db.ref('barahat').set(defaultResetValues)
+                    .then(() => {
+                        alert("تمت إعادة تعيين جميع المواقف بنجاح! ✅");
+                    })
+                    .catch(error => {
+                        alert("حدث خطأ أثناء محاولة تحديث البيانات الشاملة.");
+                    });
+            }
+        }
+
+        function logout() { location.reload(); }
+        function showLogin() { document.getElementById('loginView').classList.remove('hidden'); document.getElementById('userView').classList.add('hidden'); }
+        function hideLogin() { document.getElementById('loginView').classList.add('hidden'); document.getElementById('userView').classList.remove('hidden'); }
+
+        // --- التحديث التلقائي كل 3 دقائق للزوار فقط ---
+        setInterval(function() {
+            const isUserViewVisible = !document.getElementById('userView').classList.contains('hidden');
+            if (isUserViewVisible) {
+                location.reload();
+            }
+        }, 180000);
+    </script>
+</body>
+</html>
